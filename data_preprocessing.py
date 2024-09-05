@@ -40,8 +40,8 @@ df = df[['longitude','latitude','housing_median_age',
          'households','median_income','<1H OCEAN','INLAND',
          'ISLAND','NEAR BAY','NEAR OCEAN','median_house_value']]
 
-df.info()
-print(df.head())
+# df.info()
+# print(df.head())
 
 # SAVE PREPROCESSED DATA AND SAVE IT'S PATH INTO MySQL TABLE #
 
