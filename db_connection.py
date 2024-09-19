@@ -12,6 +12,7 @@ def db_connector():
             password = password,
             database = "ml_project"
         )
+        print("MySQL Connection Succesful !\n")
         return db_path
     except Error as e:
         print(f"An error occured {e}")

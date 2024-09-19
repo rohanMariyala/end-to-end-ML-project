@@ -6,17 +6,14 @@ from datetime import datetime
 # READ DATA FROM MySQL TABLE #
     
 sql = SQL()
-# query = "SELECT File_path FROM file_paths WHERE id = 1" ##
 query = """
-SELECT File_path FROM task_output_file_paths WHERE pipeline_run_id = '20240918-pre'
+SELECT File_path FROM task_output_file_paths WHERE pipeline_run_id = '20240918-pre-00'
 """
-
 error_message = None
 status = 1
 
 try:
     csv_path = sql.run_query_fetch(query, fetch_one=True)[0]
-    print(csv_path)
 
     # LOAD THE DATA AS PANDAS DATAFRAME #
 
@@ -34,30 +31,26 @@ try:
     df.to_csv(pre_csv, index = False)
     file_name = "preprocessed_data" 
     file_path = os.path.abspath(pre_csv)
-    print(file_path)
 
 except Exception as e:
     error_message = str(e)
+    print(e)
     status = 0
 
 
 now = datetime.now()
 today = now.date()
-print(today)
 date_str = today.strftime('%Y%m%d')
-print(date_str)
-count = 0
 
+count = 0
 count_query = """
 SELECT COUNT(*) FROM task_output_file_paths
-WHERE Task_name = 'pre' AND Task_type = 'output'
+WHERE Task_name = 'pre-processing' AND Task_type = 'output'
 """
 count = (sql.run_query_fetch(count_query, fetch_one=True)[0]) + 1
-print(count)
-
-task_name = 'pre'
-pipeline_run_id = f"{date_str}-{task_name}-{count:02d}"
-print(pipeline_run_id)
+task_name = 'pre-processing'
+pipeline_run_id = f"{date_str}-{task_name[0:3]}-{count:02d}"
+print("Pipeline run ID: \n",pipeline_run_id)
 pre_save_query = """
 INSERT INTO task_output_file_paths (
 	pipeline_run_id,
@@ -69,7 +62,6 @@ INSERT INTO task_output_file_paths (
     Status
 ) VALUES (%s, %s, %s, %s, %s, %s, %s);
 """
-
 query_data = (
     pipeline_run_id,
     date_str,
@@ -79,7 +71,10 @@ query_data = (
     error_message,
     str(status)
 )
+try:
+    sql.run_query(pre_save_query, query_data)
+except Exception as e:
+    print(e)
 
-sql.run_query(pre_save_query, query_data)
 sql.close()
-print("Success!")
+print("Preprocessing Successful!")
