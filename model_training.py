@@ -83,7 +83,7 @@ count = 0
 
 count_query = """
 SELECT COUNT(*) FROM task_output_file_paths
-WHERE Task_name = 'training-model' AND Task_type = 'output'
+WHERE Task_name = 'training-model' AND Task_type = 'model'
 """
 count = (sql.run_query_fetch(count_query, fetch_one=True)[0]) + 1
 

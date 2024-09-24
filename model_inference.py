@@ -62,7 +62,7 @@ date_str = today.strftime('%Y%m%d')
 count = 0
 count_query = """
 SELECT COUNT(*) FROM task_output_file_paths
-WHERE Task_name = 'inference-model' AND Task_type = 'output'
+WHERE Task_name = 'inference-model' AND Task_type = 'predictions'
 """
 count = (sql.run_query_fetch(count_query, fetch_one=True)[0]) + 1
 task_name = 'inference-model'
