@@ -1,15 +1,13 @@
 import mysql.connector
 import mysql.connector.cursor
 from mysql.connector import Error
-import getpass
 
 def db_connector():
-    password = getpass.getpass("Enter the MySQL DB Password: \n")
     try:
         db_path = mysql.connector.connect(
             host = "localhost",
             user = "root",
-            password = password,
+            password = 'mysql_root',
             database = "ml_project"
         )
         print("MySQL Connection Succesful !\n")
@@ -39,6 +37,7 @@ class SQL:
             self.db_cur.execute(query)
         if fetch_one == True:
             result = self.db_cur.fetchone()
+            self.db_cur.fetchall()
         else:
             result = self.db_cur.fetchall()
         return result

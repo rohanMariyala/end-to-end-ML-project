@@ -7,13 +7,35 @@ from sklearn.ensemble import RandomForestRegressor
 import joblib
 from sklearn.metrics import mean_absolute_error, mean_squared_error, root_mean_squared_error
 from db_connection import SQL
+from datetime import datetime
+
+error_message = None
+status = 1
 
 # LOAD PREPROCESSED DATA FROM MySQL #
 
 sql = SQL()
-query = "SELECT file_path FROM file_paths WHERE id = 2"
-pre_csv_path = sql.run_query_fetch(query, fetch_one=True)[0]
+# query = "SELECT file_path FROM file_paths WHERE id = 2"
+prepro_output_count_query =  """
+SELECT COUNT(*) FROM task_output_file_paths
+WHERE Task_name = 'pre-processing' AND Task_type = 'output'
+"""
+count = sql.run_query_fetch(prepro_output_count_query, fetch_one=True)[0] 
+print(count)
+
+# preprocessed_csv_query = f"""
+# SELECT File_path FROM task_output_file_paths 
+# WHERE pipeline_run_id = ''
+# """
+
+preprocessed_csv_query = """
+SELECT File_path FROM task_output_file_paths 
+WHERE Task_name = 'pre-processing' AND Task_type = 'output'
+"""
+pre_csv_path = sql.run_query_fetch(preprocessed_csv_query, fetch_one=True)[0]
+# print(pre_csv_path)
 pre_csv = pd.read_csv(pre_csv_path)
+
 
 # CREATE X & Y #
 
@@ -47,17 +69,50 @@ error_metrics(forest, X_val, y_val)
 
 # SAVE THE MODEL AS A JOB-LIB FILE & UPDATE THE PATH IN MySQL TABLE #
 
+
+now = datetime.now()
+today = now.date()
+date_str = today.strftime('%Y%m%d')
+
 model_file_name = 'model_predictor_housing_price.joblib'
 joblib.dump(forest, model_file_name)
 file_path = os.path.abspath(model_file_name)
 print(file_path)
-model_save_query = """
-INSERT INTO file_paths (file_name, file_path) 
-VALUES (%s, %s) ON DUPLICATE KEY UPDATE 
-file_name = VALUES(file_name), file_path = VALUES(file_path)
-"""
 
-sql.run_query(model_save_query, (model_file_name, file_path))
+count = 0
+
+count_query = """
+SELECT COUNT(*) FROM task_output_file_paths
+WHERE Task_name = 'training-model' AND Task_type = 'output'
+"""
+count = (sql.run_query_fetch(count_query, fetch_one=True)[0]) + 1
+
+task_name = 'training-model'
+pipeline_run_id = f"{date_str}-{task_name[0:5]}-{count:02d}"
+print("Pipeline run ID: \n",pipeline_run_id)
+
+model_save_query = """
+INSERT INTO task_output_file_paths (
+	pipeline_run_id,
+    Task_time,
+    Task_name,
+    Task_type,
+    File_path,
+    Error_message,
+    Status
+) VALUES (%s, %s, %s, %s, %s, %s, %s);
+"""
+query_data = (
+    pipeline_run_id,
+    date_str,
+    task_name,
+    'model',
+    file_path,
+    error_message,
+    str(status)
+)
+
+sql.run_query(model_save_query, query_data)
 
 # SAVE THE TEST DATA & UPDATE THE PATH IN MySQL #
 
@@ -66,10 +121,17 @@ test_file_name = 'test_data.csv'
 test_data.to_csv(test_file_name, index = False)
 file_path = os.path.abspath(test_file_name)
 print(file_path)
-model_save_query = """
-INSERT INTO file_paths (file_name, file_path) 
-VALUES (%s, %s) ON DUPLICATE KEY UPDATE 
-file_name = VALUES(file_name), file_path = VALUES(file_path)
-"""
 
-sql.run_query(model_save_query, (test_file_name, file_path))
+query_data = (
+    pipeline_run_id,
+    date_str,
+    task_name,
+    'test data',
+    file_path,
+    error_message,
+    str(status)
+)
+
+sql.run_query(model_save_query, query_data)
+
+sql.close()

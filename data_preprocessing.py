@@ -7,7 +7,7 @@ from datetime import datetime
     
 sql = SQL()
 query = """
-SELECT File_path FROM task_output_file_paths WHERE pipeline_run_id = '20240918-pre-00'
+SELECT File_path FROM task_output_file_paths WHERE pipeline_run_id = '20240919-pre-00'
 """
 error_message = None
 status = 1
@@ -29,7 +29,6 @@ try:
 
     pre_csv = 'preprocessed_data.csv'
     df.to_csv(pre_csv, index = False)
-    file_name = "preprocessed_data" 
     file_path = os.path.abspath(pre_csv)
 
 except Exception as e:
@@ -77,4 +76,4 @@ except Exception as e:
     print(e)
 
 sql.close()
-print("Preprocessing Successful!")
+print("Preprocessing Successful !")
