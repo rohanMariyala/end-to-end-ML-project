@@ -27,8 +27,13 @@ try:
 
     # SAVE PREPROCESSED DATA AND SAVE IT'S PATH INTO MySQL TABLE #
 
-    pre_csv = 'preprocessed_data.csv'
-    df.to_csv(pre_csv, index = False)
+    output_dir = '//mnt//c//users//RohanMariyala//MyPracticeTrack//end-to-end-ml-files'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    pre_csv = os.path.join(output_dir, 'preprocessed_data.csv')
+    df.to_csv(pre_csv, index=False)
+
     file_path = os.path.abspath(pre_csv)
 
 except Exception as e:
@@ -48,32 +53,11 @@ WHERE Task_name = 'pre-processing' AND Task_type = 'output'
 """
 count = (sql.run_query_fetch(count_query, fetch_one=True)[0]) + 1
 task_name = 'pre-processing'
+output_type = 'output'
 pipeline_run_id = f"{date_str}-{task_name[0:3]}-{count:02d}"
 print("Pipeline run ID: \n",pipeline_run_id)
-pre_save_query = """
-INSERT INTO task_output_file_paths (
-	pipeline_run_id,
-    Task_time,
-    Task_name,
-    Task_type,
-    File_path,
-    Error_message,
-    Status
-) VALUES (%s, %s, %s, %s, %s, %s, %s);
-"""
-query_data = (
-    pipeline_run_id,
-    date_str,
-    task_name,
-    'output',
-    file_path,
-    error_message,
-    str(status)
-)
-try:
-    sql.run_query(pre_save_query, query_data)
-except Exception as e:
-    print(e)
+
+sql.save_model_query(pipeline_run_id, date_str, task_name, output_type, file_path, error_message, status)
 
 sql.close()
 print("Preprocessing Successful !")

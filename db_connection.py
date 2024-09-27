@@ -49,7 +49,30 @@ class SQL:
         else:
             result = self.db_cur.fetchall()
         return result
-    
+
+    def save_model_query(self, pipeline_run_id, date_str, task_name, output_type, file_path, error_message, status):
+        model_save_query = """
+        INSERT INTO task_output_file_paths (
+            pipeline_run_id,
+            Task_time,
+            Task_name,
+            Task_type,
+            File_path,
+            Error_message,
+            Status
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s);
+        """
+        query_data = (
+            pipeline_run_id,
+            date_str,
+            task_name,
+            output_type,
+            file_path,
+            error_message,
+            str(status)
+        )
+        self.run_query(model_save_query, query_data)
+
     def close(self):
         self.db_path.close()
         self.db_cur.close()

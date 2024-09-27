@@ -20,19 +20,19 @@ with DAG(
     
     # Task 1: Run task1.py using BashOperator
     run_task1 = BashOperator(
-        task_id='task1',
+        task_id='pre-processing',
         bash_command='python3 //mnt//c//Users//RohanMariyala//MyPracticeTrack//end-to-end-ML-project//data_preprocessing.py', 
     )
 
     # Task 2: Run task2.py using BashOperator
     run_task2 = BashOperator(
-        task_id='task2',
+        task_id='model-training',
         bash_command='python3 //mnt//c//Users//RohanMariyala//MyPracticeTrack//end-to-end-ML-project//model_training.py',  
     )
 
     # Task 3: Run task3.py using BashOperator
     run_task3 = BashOperator(
-        task_id='task3',
+        task_id='model-inference',
         bash_command='python3 //mnt//c//Users//RohanMariyala//MyPracticeTrack//end-to-end-ML-project//model_inference.py',  
     )
 

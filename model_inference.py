@@ -1,6 +1,5 @@
 from db_connection import SQL
 import pandas as pd
-from flask import Flask, request, jsonify
 import joblib
 from sklearn.metrics import r2_score
 import os
@@ -11,8 +10,6 @@ error_message = None
 status = 1
 
 # LOAD THE TEST DATA FROM MySQL #
-
-# query = "SELECT file_path FROM file_paths WHERE id = 4" ##
 
 model_output_count_query =  """
 SELECT COUNT(*) FROM task_output_file_paths
@@ -48,12 +45,17 @@ y_pred = model.predict(X_test)
 r2 = r2_score(y_test, y_pred)
 print("\nModel Prediction Score: ", r2)
 
-# SAVE THE TEST DATA WITH THE PREEDICTIONS #
-X_test['predictions'] = y_pred
-pred_file_name = 'test_with_pred.csv'
-X_test.to_csv(pred_file_name, index=False)
+# SAVE THE TEST DATA WITH THE PREDICTIONS #
 
-file_path = os.path.abspath(pred_file_name)
+X_test['predictions'] = y_pred
+pred_file_name = 'test_data_with_pred.csv'
+output_dir = '//mnt//c//users//RohanMariyala//MyPracticeTrack//end-to-end-ml-files'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+test_data_with_pred_file = os.path.join(output_dir, pred_file_name)
+X_test.to_csv(test_data_with_pred_file, index=False)
+file_path = os.path.abspath(test_data_with_pred_file)
 
 now = datetime.now()
 today = now.date()
@@ -66,31 +68,10 @@ WHERE Task_name = 'inference-model' AND Task_type = 'predictions'
 """
 count = (sql.run_query_fetch(count_query, fetch_one=True)[0]) + 1
 task_name = 'inference-model'
+output_type = 'predictions'
 pipeline_run_id = f"{date_str}-{task_name[0:5]}-{count:02d}"
 print("Pipeline run ID: \n",pipeline_run_id)
-pre_save_query = """
-INSERT INTO task_output_file_paths (
-	pipeline_run_id,
-    Task_time,
-    Task_name,
-    Task_type,
-    File_path,
-    Error_message,
-    Status
-) VALUES (%s, %s, %s, %s, %s, %s, %s);
-"""
-query_data = (
-    pipeline_run_id,
-    date_str,
-    task_name,
-    'predictions',
-    file_path,
-    error_message,
-    str(status)
-)
-try:
-    sql.run_query(pre_save_query, query_data)
-except Exception as e:
-    print(e)
+
+sql.save_model_query(pipeline_run_id, date_str, task_name, output_type, file_path, error_message, status)
 
 sql.close()
