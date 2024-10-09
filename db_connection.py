@@ -1,14 +1,21 @@
+import json
 import mysql.connector
 import mysql.connector.cursor
 from mysql.connector import Error
 
-def db_connector():
+def db_connector(config_data):
+
+    config_path = '//mnt//c//Users//RohanMariyala//MyPracticeTrack//end-to-end-ML-project//config.json'
+    with open(config_path, "r") as config_file:
+        config_data = json.load(config_file)
+    
+    db_config = config_data["db_config"]
     try:
         db_path = mysql.connector.connect(
-            host = "172.16.1.174",
-            user = "new_user",
-            password = 'mysql',
-            database = "ml_project"
+            host = db_config['host'],
+            user = db_config['user'],
+            password = db_config['password'],
+            database = db_config['database']
         )
         print("MySQL Connection Succesful !\n")
         return db_path
@@ -20,7 +27,11 @@ def db_connector():
 
 class SQL:
     def __init__(self):
-        self.db_path = db_connector()
+        config_path = '//mnt//c//Users//RohanMariyala//MyPracticeTrack//end-to-end-ML-project//config.json'
+        with open(config_path, "r") as config_file:
+            self.config_data = json.load(config_file)
+
+        self.db_path = db_connector(self.config_data)
         if self.db_path is not None:
             self.db_cur = self.db_path.cursor()
         else:
@@ -72,6 +83,28 @@ class SQL:
             str(status)
         )
         self.run_query(model_save_query, query_data)
+
+    def sql_return_error(self, pipeline_run_id, date_str, task_name, error_message, status):
+        error_query = """
+        INSERT INTO task_output_file_paths (
+            pipeline_run_id,
+            Task_time,
+            Task_name,
+            Task_type,
+            Error_message,
+            Status
+        ) VALUES (%s, %s, %s, %s, %s, %s);
+        """
+        query_data = (
+            pipeline_run_id,
+            date_str,
+            task_name,
+            "Error",
+            error_message,
+            str(status)
+        )
+        self.run_query(error_query, query_data)
+
 
     def close(self):
         self.db_path.close()
