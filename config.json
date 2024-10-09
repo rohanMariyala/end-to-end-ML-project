@@ -1,0 +1,14 @@
+{
+    "db_config" : {
+        "host" : "172.16.1.174",
+        "user" : "new_user",
+        "password" : "mysql",
+        "database" : "ml_project"
+    },
+
+    "output_dir" : "//mnt//c//users//RohanMariyala//MyPracticeTrack//end-to-end-ml-files",
+    "queries" : {
+        "csv_path" : "SELECT File_path FROM task_output_file_paths WHERE pipeline_run_id = '20240919-pre-00'",
+        "count_query" : "SELECT COUNT(*) FROM task_output_file_paths WHERE Task_name = 'pre-processing' AND Task_type = 'output'"
+    }
+}
