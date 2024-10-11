@@ -1,0 +1,10 @@
+{
+    "db_config" : {
+        "host" : "172.16.1.174",
+        "user" : "new_user",
+        "password" : "mysql",
+        "database" : "ml_project"
+    },
+
+    "output_dir" : "//mnt//c//users//RohanMariyala//MyPracticeTrack//end-to-end-ml-files"
+}
